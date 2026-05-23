@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+const GITHUB_USER = "wstasior"; 
+const GITHUB_REPO = "cart1";     
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>📷</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f0e8;
+    --ink: #1a1410;
+    --muted: #8c7e6a;
+    --accent: #c0392b;
+    --paper: #faf7f2;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Playfair Display', Georgia, serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid #ddd6c8;
+    border-radius: 3px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 4px 4px 0 #d4c9b8, 8px 8px 0 #c8bca8;
+    overflow: hidden;
+  }
+
+  .top-strip {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .photo-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: #e8e0d4;
+    overflow: hidden;
+  }
+
+  .photo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.5s ease;
+  }
+
+  .skeleton {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, #e8e0d4 25%, #f0e8dc 50%, #e8e0d4 75%);
+    background-size: 200% 100%;
+    animation: sweep 1.5s infinite;
+  }
+
+  @keyframes sweep {
+    0%  { background-position: 200% 0; }
+    100%{ background-position: -200% 0; }
+  }
+
+  .caption {
+    padding: 20px 24px 12px;
+    border-bottom: 1px solid #e8e0d4;
+  }
+
+  .caption h1 {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .caption p {
+    font-size: 17px;
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--muted);
+    word-break: break-all;
+  }
+
+  .bottom {
+    padding: 16px 24px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  .shuffle-btn {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 10px 22px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .shuffle-btn:hover  { background: var(--accent); }
+  .shuffle-btn:active { transform: scale(0.97); }
+
+  /* ── Error state ── */
+  .error-box {
+    padding: 36px 28px;
+    text-align: center;
+  }
+  .error-box .icon { font-size: 32px; margin-bottom: 12px; }
+  .error-box h2 { font-size: 20px; margin-bottom: 10px; }
+  .error-box p {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  .error-box code {
+    background: #eae4da;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <div class="top-strip">
+    <span>📷 random photo</span>
+    <span id="dateStamp"></span>
+  </div>
+
+  <div class="photo-wrap" id="photoWrap">
+    <div class="skeleton" id="skeleton"></div>
+    <img id="photo" src="" alt="Random photo" style="opacity:0" />
+  </div>
+
+  <div class="caption">
+    <h1>filename</h1>
+    <p id="captionText">Loading…</p>
+  </div>
+
+  <div class="bottom">
+    <span class="counter" id="counter"></span>
+    <button class="shuffle-btn" onclick="shuffle()">↺ Another one</button>
+  </div>
+</div>
+
+<script>
+  // ─────────────────────────────────────────────────────────────
+  //  CONFIG — fill these in with your GitHub details
+  //  GITHUB_USER : your GitHub username
+  //  GITHUB_REPO : the repository name  (e.g. "door-photo")
+  //  IMAGES_DIR  : folder inside the repo that holds your photos
+  // ─────────────────────────────────────────────────────────────
+  const GITHUB_USER  = "YOUR_USERNAME";   // ← change this
+  const GITHUB_REPO  = "door-photo";      // ← change this if needed
+  const IMAGES_DIR   = "images";          // ← folder name in your repo
+  const BRANCH       = "main";
+  // ─────────────────────────────────────────────────────────────
+
+  const IMAGE_EXTS = /\.(jpe?g|png|gif|webp|avif)$/i;
+
+  let files = [];
+  let currentIdx = -1;
+
+  document.getElementById("dateStamp").textContent =
+    new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+  async function init() {
+    try {
+      const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${IMAGES_DIR}?ref=${BRANCH}`;
+      const res = await fetch(apiUrl, {
+        headers: { Accept: "application/vnd.github+json" }
+      });
+
+      if (!res.ok) {
+        const msg = res.status === 404
+          ? `Couldn't find <code>${IMAGES_DIR}/</code> in <code>${GITHUB_USER}/${GITHUB_REPO}</code>.<br><br>Make sure the folder exists and the repo is public.`
+          : `GitHub API error ${res.status}. Check your username and repo name in index.html.`;
+        showError(msg);
+        return;
+      }
+
+      const data = await res.json();
+      files = data.filter(f => f.type === "file" && IMAGE_EXTS.test(f.name));
+
+      if (!files.length) {
+        showError(`No images found in <code>${IMAGES_DIR}/</code>.<br><br>Upload some .jpg or .png files to that folder.`);
+        return;
+      }
+
+      shuffle();
+    } catch (e) {
+      showError("Network error — are you offline?");
+    }
+  }
+
+  function shuffle() {
+    if (!files.length) return;
+    let next;
+    do { next = Math.floor(Math.random() * files.length); }
+    while (files.length > 1 && next === currentIdx);
+    currentIdx = next;
+    showPhoto(files[currentIdx]);
+  }
+
+  function showPhoto(file) {
+    const el       = document.getElementById("photo");
+    const skeleton = document.getElementById("skeleton");
+
+    skeleton.style.display = "block";
+    el.style.opacity = 0;
+
+    // Use the raw.githubusercontent.com URL — direct image delivery, no API needed
+    const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${BRANCH}/${IMAGES_DIR}/${file.name}`;
+
+    document.getElementById("captionText").textContent = file.name;
+    document.getElementById("counter").textContent =
+      `${files.length} photo${files.length !== 1 ? "s" : ""} in album`;
+
+    el.onload = () => {
+      skeleton.style.display = "none";
+      el.style.opacity = 1;
+    };
+    el.onerror = () => {
+      skeleton.style.display = "none";
+      document.getElementById("captionText").textContent = "Could not load image";
+    };
+    el.src = rawUrl;
+  }
+
+  function showError(html) {
+    document.getElementById("card").innerHTML = `
+      <div class="top-strip"><span>📷 random photo</span></div>
+      <div class="error-box">
+        <div class="icon">⚙️</div>
+        <h2>Setup needed</h2>
+        <p>${html}</p>
+      </div>`;
+  }
+
+  init();
+</script>
+</body>
+</html>
