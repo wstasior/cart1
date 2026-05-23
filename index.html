@@ -4,62 +4,67 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>📷</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #f5f0e8;
-    --ink: #1a1410;
-    --muted: #8c7e6a;
-    --accent: #c0392b;
-    --paper: #faf7f2;
-  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Playfair Display', Georgia, serif;
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  }
-
-  .card {
-    background: var(--paper);
-    border: 1px solid #ddd6c8;
-    border-radius: 3px;
-    max-width: 480px;
-    width: 100%;
-    box-shadow: 4px 4px 0 #d4c9b8, 8px 8px 0 #c8bca8;
+    background: #000;
+    width: 100dvw;
+    height: 100dvh;
     overflow: hidden;
+    cursor: pointer;
   }
 
-  .top-strip {
-    background: var(--ink);
-    color: var(--bg);
-    padding: 10px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-  }
-
-  .photo-wrap {
-    position: relative;
+  img {
     width: 100%;
-    aspect-ratio: 4/3;
-    background: #e8e0d4;
-    overflow: hidden;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.4s ease;
+  }
+</style>
+</head>
+<body>
+<img id="photo" src="" alt="" />
+
+<script>
+  // ─────────────────────────────────────────────────
+  const GITHUB_USER = "YOUR_USERNAME";  // ← change this
+  const GITHUB_REPO = "door-photo";     // ← change if needed
+  const IMAGES_DIR  = "images";
+  const BRANCH      = "main";
+  // ─────────────────────────────────────────────────
+
+  const IMAGE_EXTS = /\.(jpe?g|png|gif|webp|avif)$/i;
+  let files = [];
+  let currentIdx = -1;
+  const el = document.getElementById("photo");
+
+  async function init() {
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${IMAGES_DIR}?ref=${BRANCH}`, {
+      headers: { Accept: "application/vnd.github+json" }
+    });
+    const data = await res.json();
+    files = data.filter(f => f.type === "file" && IMAGE_EXTS.test(f.name));
+    if (files.length) shuffle();
   }
 
+  function shuffle() {
+    let next;
+    do { next = Math.floor(Math.random() * files.length); }
+    while (files.length > 1 && next === currentIdx);
+    currentIdx = next;
+    el.style.opacity = 0;
+    el.onload = () => el.style.opacity = 1;
+    el.src = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${BRANCH}/${IMAGES_DIR}/${files[currentIdx].name}`;
+  }
+
+  document.body.addEventListener("click", () => { if (files.length) shuffle(); });
+
+  init();
+</script>
+</body>
+</html>
   .photo-wrap img {
     width: 100%;
     height: 100%;
